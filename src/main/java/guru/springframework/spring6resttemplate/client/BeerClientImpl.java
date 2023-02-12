@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Map;
 
@@ -28,11 +29,16 @@ public class BeerClientImpl implements BeerClient {
     public Page<BeerDTO> listBeers() {
         RestTemplate restTemplate = restTemplateBuilder.build();
 
-        ResponseEntity<BeerDTOPageImpl> stringResponse =
-                restTemplate.getForEntity(GET_BEER_PATH , BeerDTOPageImpl.class);
+        /*
+        UriComponentsBuilder allows to build the path to include query params
+        */
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromPath(GET_BEER_PATH);
+
+        ResponseEntity<BeerDTOPageImpl> response =
+                restTemplate.getForEntity(uriComponentsBuilder.toUriString() , BeerDTOPageImpl.class);
 
 
-        return null;
+        return response.getBody();
     }
 }
 
