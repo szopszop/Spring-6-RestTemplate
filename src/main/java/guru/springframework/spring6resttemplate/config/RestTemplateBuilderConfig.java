@@ -1,23 +1,39 @@
 package guru.springframework.spring6resttemplate.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.client.RestTemplateBuilderConfigurer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.oauth2.client.AuthorizedClientServiceOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientProviderBuilder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 @Configuration
+@RequiredArgsConstructor
 public class RestTemplateBuilderConfig {
 
     @Value("${rest.template.rootUrl}")
     String rootUrl;
 
+    private final ClientRegistrationRepository clientRegistrationRepository;
+    private final OAuth2AuthorizedClientService oAuth2AuthorizedClientService;
 
-    @Value("${spring.security.user.name}")
-    public static final String USERNAME = "user1";
-    @Value("${spring.security.user.password}")
-    public static final  String PASSWORD = "password";
+    OAuth2AuthorizedClientManager auth2AuthorizedClientManager() {
+        var authorizedClientProvider = OAuth2AuthorizedClientProviderBuilder.builder()
+                .clientCredentials()
+                .build();
+        var authorizedClientManager = new AuthorizedClientServiceOAuth2AuthorizedClientManager(
+                clientRegistrationRepository, oAuth2AuthorizedClientService);
+
+        authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider);
+        return authorizedClientManager;
+
+    }
 
 
     @Bean
@@ -25,7 +41,6 @@ public class RestTemplateBuilderConfig {
         assert rootUrl !=null;
 
         return configurer.configure(new RestTemplateBuilder())
-                .basicAuthentication(USERNAME, PASSWORD)
                 .uriTemplateHandler(new DefaultUriBuilderFactory(rootUrl));
     }
 
